@@ -9,34 +9,47 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
+      - name: Checkout Repository (Fetch All Branches)
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 
 
       - name: Set Up Helm
         uses: azure/setup-helm@v3
         with:
           version: latest
 
+      - name: Verify Helm Chart Exists
+        run: |
+          if [ ! -f helm-chart-checker/Chart.yaml ]; then
+            echo "Error: Chart.yaml not found! Exiting."
+            exit 1
+          fi
+
       - name: Package Helm Chart
         run: |
+          mkdir -p docs
           helm package helm-chart-checker --destination docs/
 
       - name: Update Helm Repo Index
         run: |
           helm repo index docs --url https://datcal.github.io/helm-chart-checker/
 
-      - name: Commit and Push Changes
+      - name: Commit and Push Changes to Main
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
           git checkout main || git checkout -b main
           git pull origin main
+
           git add docs/
           git commit -m "Release ${{ github.ref_name }}"
-          git push origin HEAD:main
+          
+          git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/datcal/helm-chart-checker.git HEAD:main
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          personal_token: ${{ secrets.GH_PAT }}
           publish_dir: docs
