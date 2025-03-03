@@ -19,7 +19,6 @@ jobs:
 
       - name: Package Helm Chart
         run: |
-          mkdir -p docs
           helm package helm-chart-checker --destination docs/
 
       - name: Update Helm Repo Index
@@ -30,6 +29,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git pull origin main
           git add docs/
           git commit -m "Release ${{ github.ref_name }}"
           git push origin main
