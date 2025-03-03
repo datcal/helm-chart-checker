@@ -1,0 +1,41 @@
+name: "Helm Chart Release"
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: latest
+
+      - name: Package Helm Chart
+        run: |
+          mkdir -p docs
+          helm package helm-chart-checker --destination docs/
+
+      - name: Update Helm Repo Index
+        run: |
+          helm repo index docs --url https://datcal.github.io/helm-chart-checker/
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/
+          git commit -m "Release ${{ github.ref_name }}"
+          git push origin main
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs

@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Release.Name }}-chart-checker
+spec:
+  schedule: "{{ .Values.schedule }}"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: helm-checker-sa
+          restartPolicy: OnFailure
+          containers:
+          - name: checker
+            image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+            command:
+              - /bin/sh
+              - -c
+              - |
+                {{- include "helm-chart-checker.script" . | nindent 18 }}
+            env:
+            - name: ALERT_TYPE
+              value: "{{ .Values.alertType }}"
+            - name: SLACK_WEBHOOK
+              value: "{{ .Values.slack.webhookUrl }}"
+            - name: SLACK_CHANNEL
+              value: "{{ .Values.slack.channel }}"
+            - name: SLACK_USERNAME
+              value: "{{ .Values.slack.username }}"
+            - name: SLACK_ICON
+              value: "{{ .Values.slack.iconEmoji }}"
+            - name: WEBHOOK_URL
+              value: "{{ .Values.webhook.url }}"

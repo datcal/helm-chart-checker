@@ -1,0 +1,24 @@
+image:
+  repository: alpine
+  tag: latest
+  pullPolicy: IfNotPresent
+
+schedule: "* * * * *"
+
+alertType: print # slack, print, webhook
+
+slack:
+  webhookUrl: ""
+  channel: ""
+  username: ""
+  iconEmoji: ""
+
+webhook:
+  url: ""
+
+
+helmRepositories:
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
+  - name: stable
+    url: https://charts.helm.sh/stable
